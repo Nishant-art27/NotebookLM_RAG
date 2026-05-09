@@ -1,0 +1,32 @@
+{
+  "name": "notebooklm-rag",
+  "version": "1.0.0",
+  "description": "Google NotebookLM Clone — RAG-powered document Q&A with Groq, Gemini Embeddings, and Qdrant",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "rag",
+    "notebooklm",
+    "groq",
+    "qdrant",
+    "langchain",
+    "embeddings"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@langchain/community": "^1.1.28",
+    "@langchain/core": "^1.1.45",
+    "@langchain/google-genai": "^2.1.30",
+    "@langchain/qdrant": "^1.0.2",
+    "@langchain/textsplitters": "^1.0.1",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "groq-sdk": "^1.1.2",
+    "multer": "^2.1.1",
+    "pdf-parse": "^2.4.5"
+  }
+}
