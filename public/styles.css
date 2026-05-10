@@ -129,6 +129,11 @@ body {
   color: var(--btn-text);
 }
 
+@keyframes floatLogo {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
 .logo-text {
   font-size: 1.3rem;
   font-weight: 700;
@@ -414,6 +419,12 @@ body {
   font-size: 0.8rem;
   color: var(--text-primary);
   font-weight: 600;
+  animation: pulseBadge 2s ease-in-out infinite;
+}
+
+@keyframes pulseBadge {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 .badge-dot {
@@ -444,6 +455,11 @@ body {
 
 .welcome-screen.hidden {
   display: none;
+}
+
+.welcome-icon svg {
+  animation: floatLogo 4s ease-in-out infinite;
+  margin-bottom: 24px;
 }
 
 .welcome-title {
