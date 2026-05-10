@@ -126,7 +126,14 @@ async function uploadFile(file) {
       body: formData,
     });
 
-    const data = await response.json();
+    const contentType = response.headers.get("content-type");
+    let data = {};
+    if (contentType && contentType.includes("application/json")) {
+      data = await response.json();
+    } else {
+      const text = await response.text();
+      throw new Error(`Server error (${response.status}): ${text.substring(0, 50)}`);
+    }
 
     if (!response.ok) {
       throw new Error(data.error || "Upload failed.");
