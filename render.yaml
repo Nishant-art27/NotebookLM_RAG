@@ -1,6 +1,7 @@
 services:
   - type: web
     name: notebooklm-rag
+    region: oregon
     runtime: node
     buildCommand: npm install
     startCommand: node server.js
