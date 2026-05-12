@@ -49,17 +49,30 @@ const upload = multer({
 // --- Document Registry (simple JSON file persistence) ---
 const registryPath = path.join(__dirname, "documents.json");
 
-async function loadRegistry() {
+async function loadRegistry(sessionId = 'default') {
   try {
     const data = await fs.readFile(registryPath, "utf-8");
-    return JSON.parse(data);
+    let all = JSON.parse(data);
+    if (Array.isArray(all)) {
+      all = { 'default': all };
+    }
+    return all[sessionId] || [];
   } catch {
     return [];
   }
 }
 
-async function saveRegistry(docs) {
-  await fs.writeFile(registryPath, JSON.stringify(docs, null, 2));
+async function saveRegistry(sessionId, docs) {
+  let all = {};
+  try {
+    const data = await fs.readFile(registryPath, "utf-8");
+    all = JSON.parse(data);
+    if (Array.isArray(all)) {
+      all = { 'default': all };
+    }
+  } catch {}
+  all[sessionId] = docs;
+  await fs.writeFile(registryPath, JSON.stringify(all, null, 2));
 }
 
 // --- API Routes ---
@@ -70,6 +83,7 @@ async function saveRegistry(docs) {
  */
 app.post("/api/upload", upload.single("document"), async (req, res) => {
   try {
+    const sessionId = req.headers["x-session-id"] || 'default';
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded." });
     }
@@ -98,9 +112,9 @@ app.post("/api/upload", upload.single("document"), async (req, res) => {
       filePath: filename,
     };
 
-    const registry = await loadRegistry();
+    const registry = await loadRegistry(sessionId);
     registry.push(docEntry);
-    await saveRegistry(registry);
+    await saveRegistry(sessionId, registry);
 
     // Clean up uploaded file (already indexed)
     await fs.unlink(filePath).catch(() => {});
@@ -123,10 +137,17 @@ app.post("/api/upload", upload.single("document"), async (req, res) => {
  */
 app.post("/api/chat", async (req, res) => {
   try {
+    const sessionId = req.headers["x-session-id"] || 'default';
     const { query, collectionName } = req.body;
 
     if (!query || !collectionName) {
       return res.status(400).json({ error: "Both 'query' and 'collectionName' are required." });
+    }
+
+    const registry = await loadRegistry(sessionId);
+    const docExists = registry.some(d => d.collectionName === collectionName);
+    if (!docExists) {
+      return res.status(403).json({ error: "Unauthorized access to this document." });
     }
 
     // Step 1: Retrieve relevant chunks from Qdrant
@@ -155,7 +176,8 @@ app.post("/api/chat", async (req, res) => {
  */
 app.get("/api/documents", async (req, res) => {
   try {
-    const registry = await loadRegistry();
+    const sessionId = req.headers["x-session-id"] || 'default';
+    const registry = await loadRegistry(sessionId);
     res.json(registry);
   } catch (error) {
     console.error("List error:", error);
@@ -169,8 +191,9 @@ app.get("/api/documents", async (req, res) => {
  */
 app.delete("/api/documents/:id", async (req, res) => {
   try {
+    const sessionId = req.headers["x-session-id"] || 'default';
     const { id } = req.params;
-    const registry = await loadRegistry();
+    const registry = await loadRegistry(sessionId);
     const docIndex = registry.findIndex((d) => d.id === id);
 
     if (docIndex === -1) {
@@ -182,7 +205,7 @@ app.delete("/api/documents/:id", async (req, res) => {
 
     // Remove from registry
     registry.splice(docIndex, 1);
-    await saveRegistry(registry);
+    await saveRegistry(sessionId, registry);
 
     res.json({ success: true, message: "Document deleted." });
   } catch (error) {

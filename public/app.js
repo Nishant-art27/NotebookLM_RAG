@@ -26,6 +26,17 @@ let documents = [];
 let activeDocument = null;
 let isProcessing = false;
 
+// --- Session ID ---
+function getSessionId() {
+  let sessionId = localStorage.getItem("sessionId");
+  if (!sessionId) {
+    sessionId = "session_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem("sessionId", sessionId);
+  }
+  return sessionId;
+}
+const sessionId = getSessionId();
+
 // --- Initialize ---
 document.addEventListener("DOMContentLoaded", () => {
   loadDocuments();
@@ -77,6 +88,23 @@ function setupEventListeners() {
   // Mobile sidebar
   mobileMenuBtn.addEventListener("click", toggleSidebar);
   sidebarToggle.addEventListener("click", toggleSidebar);
+
+  // Logo click to home
+  const logoElement = document.querySelector(".logo");
+  if (logoElement) {
+    logoElement.style.cursor = "pointer";
+    logoElement.addEventListener("click", () => {
+      activeDocument = null;
+      chatInput.disabled = true;
+      sendBtn.disabled = true;
+      chatInput.placeholder = "Ask a question about your document...";
+      activeDocumentHeader.innerHTML = `<span class="active-doc-label">Select a document to start chatting</span>`;
+      welcomeScreen.classList.remove("hidden");
+      messages.innerHTML = "";
+      renderDocuments(); // to remove active class
+      closeSidebar();
+    });
+  }
 }
 
 // ========================================
@@ -123,6 +151,7 @@ async function uploadFile(file) {
 
     const response = await fetch("/api/upload", {
       method: "POST",
+      headers: { "x-session-id": sessionId },
       body: formData,
     });
 
@@ -142,10 +171,11 @@ async function uploadFile(file) {
     animateProgress(60, 100, 500);
     progressText.textContent = "Indexing complete!";
 
-    setTimeout(() => {
+    setTimeout(async () => {
       hideUploadProgress();
       showToast(`"${data.document.name}" uploaded — ${data.document.chunkCount} chunks indexed!`, "success");
-      loadDocuments();
+      await loadDocuments();
+      selectDocument(data.document);
     }, 800);
   } catch (error) {
     hideUploadProgress();
@@ -177,7 +207,9 @@ function animateProgress(from, to, duration) {
 // ========================================
 async function loadDocuments() {
   try {
-    const response = await fetch("/api/documents");
+    const response = await fetch("/api/documents", {
+      headers: { "x-session-id": sessionId }
+    });
     documents = await response.json();
     renderDocuments();
   } catch (error) {
@@ -262,7 +294,10 @@ async function deleteDocument(doc) {
   if (!confirm(`Delete "${doc.name}"? This cannot be undone.`)) return;
 
   try {
-    const response = await fetch(`/api/documents/${doc.id}`, { method: "DELETE" });
+    const response = await fetch(`/api/documents/${doc.id}`, { 
+      method: "DELETE",
+      headers: { "x-session-id": sessionId }
+    });
     const data = await response.json();
 
     if (!response.ok) throw new Error(data.error);
@@ -318,7 +353,10 @@ async function sendMessage() {
   try {
     const response = await fetch("/api/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "x-session-id": sessionId
+      },
       body: JSON.stringify({
         query,
         collectionName: activeDocument.collectionName,

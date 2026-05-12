@@ -1,10 +1,22 @@
-[
-  {
-    "id": "1778384481640_assignment_03_____google_notebooklm_",
-    "name": "Assignment 03 â Google NotebookLM RAG.pdf",
-    "collectionName": "1778384481640_assignment_03_____google_notebooklm_",
-    "uploadedAt": "2026-05-10T03:41:24.576Z",
-    "chunkCount": 5,
-    "filePath": "1778384481640-Assignment 03 â Google NotebookLM RAG.pdf"
-  }
-]
+{
+  "default": [
+    {
+      "id": "1778577116163_hall_ticket_pdf",
+      "name": "hall_ticket.pdf",
+      "collectionName": "1778577116163_hall_ticket_pdf",
+      "uploadedAt": "2026-05-12T09:11:59.079Z",
+      "chunkCount": 5,
+      "filePath": "1778577116163-hall_ticket.pdf"
+    }
+  ],
+  "session_1778578981195_hum41ev1q": [
+    {
+      "id": "1778578994085_hall_ticket_pdf",
+      "name": "hall_ticket.pdf",
+      "collectionName": "1778578994085_hall_ticket_pdf",
+      "uploadedAt": "2026-05-12T09:43:17.188Z",
+      "chunkCount": 5,
+      "filePath": "1778578994085-hall_ticket.pdf"
+    }
+  ]
+}
